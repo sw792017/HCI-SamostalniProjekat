@@ -42,6 +42,9 @@
     <Reference Include="LiveCharts.Wpf, Version=0.9.7.0, Culture=neutral, PublicKeyToken=0bc1f845d1ebb8df, processorArchitecture=MSIL">
       <HintPath>..\packages\LiveCharts.Wpf.0.9.7\lib\net45\LiveCharts.Wpf.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
@@ -94,6 +97,18 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="slike\clear-day.png" />
+    <Content Include="slike\clear-night.png" />
+    <Content Include="slike\cloudy.png" />
+    <Content Include="slike\fog.png" />
+    <Content Include="slike\partly-cloudy-day.png" />
+    <Content Include="slike\partly-cloudy-night.png" />
+    <Content Include="slike\rain.png" />
+    <Content Include="slike\sleet.png" />
+    <Content Include="slike\snow.png" />
+    <Content Include="slike\wind.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -18,3 +18,5 @@ C:\Users\User\source\repos\ihc\ihc\bin\Debug\LiveCharts.WinForms.xml
 C:\Users\User\source\repos\ihc\ihc\bin\Debug\LiveCharts.Wpf.pdb
 C:\Users\User\source\repos\ihc\ihc\bin\Debug\LiveCharts.Wpf.xml
 C:\Users\User\source\repos\ihc\ihc\obj\Debug\ihc.csproj.CopyComplete
+C:\Users\User\source\repos\ihc\ihc\bin\Debug\Newtonsoft.Json.dll
+C:\Users\User\source\repos\ihc\ihc\bin\Debug\Newtonsoft.Json.xml
