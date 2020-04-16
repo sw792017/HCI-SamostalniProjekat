@@ -112,7 +112,7 @@ namespace ihc
                     rezultat = client.DownloadString(url);
                 }
             }
-            catch { rezultat = "error"; return; }
+            catch { rezultat = "error"; MessageBox.Show("Došlo je do greške sa komunikacijom sa serverom. Molimo vas da se proverite vašu konekciju sa internetom", "Greška"); return; }
 
             if (rezultat != "error")
             {
