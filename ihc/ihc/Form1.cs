@@ -205,7 +205,7 @@ namespace ihc
                         s = "u Leskovcu";
                         break;
                     case "43.316763"://nis
-                        s = "u nišu";
+                        s = "u Nišu";
                         break;
                     case "45.265937"://novi sad
                         s = "u Novom Sadu";
