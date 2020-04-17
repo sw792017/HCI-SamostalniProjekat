@@ -24,6 +24,7 @@ namespace ihc
         List<string> lista = new List<string>();
         List<string> listaXL = new List<string>();
         List<string> dani = new List<string>{ "Ponedeljak", "Utorak", "Sreda", "Četvrtak", "Petak", "Subota", "Nedelja" };
+        List<int> prikaziGrad = new List<int> { 4 };
         string sada = "";
         int index = 1;
 
@@ -34,10 +35,15 @@ namespace ihc
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            comboBox1.SelectedIndex = 4;
             comboBox2.SelectedIndex = 0;
-            comboBox1.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox2.DropDownStyle = ComboBoxStyle.DropDownList;
+
+            /*checkedComboBox1.Items.Add("Beograd", false);
+            checkedComboBox1.Items.Add("Valjevo", false);
+            checkedComboBox1.Items.Add("Leskovac", false);
+            checkedComboBox1.Items.Add("Niš", false);
+            checkedComboBox1.Items.Add("Novi Sad", true);
+            checkedComboBox1.Items.Add("Subotica", false);*/
 
             ////////////////////////////////////////////
             dataGridView1.ColumnCount = 9;
@@ -57,7 +63,7 @@ namespace ihc
             {
                 band.ReadOnly = true;
             }
-            popuni(lokacija());
+            popuni(lokacija(4));
             napraviGraf();
         }
 
@@ -104,30 +110,38 @@ namespace ihc
             
             string url = @"https://api.darksky.net/forecast/7f06dd7200dc1fc07af4db4e94039491/" + lokacija + "," + sekundi;
             string rezultat = "error";
-
-            try
+            bool hajde = true;
+            if (imamPodatke(lokacija) == -1)
             {
-                using (var client = new WebClient())
+                try
                 {
-                    rezultat = client.DownloadString(url);
+                    using (var client = new WebClient())
+                    {
+                        rezultat = client.DownloadString(url);
+                    }
                 }
+                catch { rezultat = "error"; MessageBox.Show("Došlo je do greške sa komunikacijom sa serverom. Molimo vas da se proverite vašu konekciju sa internetom", "Greška"); return; }
             }
-            catch { rezultat = "error"; MessageBox.Show("Došlo je do greške sa komunikacijom sa serverom. Molimo vas da se proverite vašu konekciju sa internetom", "Greška"); return; }
-
+            else
+            {
+                rezultat = lista.ElementAt(imamPodatke(lokacija));
+                hajde = false;
+            }
             if (rezultat != "error")
             {
                 //////////////////////////////////////////////////////////////////////////////////////////
-                var jObject = JObject.Parse(rezultat);
 
                 var Jvreme = JsonConvert.DeserializeObject<dynamic>(rezultat);
                 if (sada == "")
                     sada = Jvreme.daily.data[0].time;
                 //MessageBox.Show(sada.ToString());
-                double temperatura = (Convert.ToDouble(Jvreme.hourly.data[DateTime.Now.Hour].temperature) - 32 ) / 1.8;
+                double temperatura = (Convert.ToDouble(Jvreme.hourly.data[DateTime.Now.Hour].temperature) - 32) / 1.8;
                 double temperaturaV = (Convert.ToDouble(Jvreme.daily.data[0].temperatureHigh) - 32) / 1.8;
                 double temperaturaN = (Convert.ToDouble(Jvreme.daily.data[0].temperatureLow) - 32) / 1.8;
                 string opis = Jvreme.daily.data[0].icon;
-                dataGridView1.Rows.Add(comboBox1.Text,
+                string grad = Jvreme.latitude;
+                dataGridView1.Rows.Add(
+                    lokacijaUnazad2(grad),
                     prevedi(opis),
                     UnixTimeStampToDateTime(Convert.ToDouble(Jvreme.hourly.data[DateTime.Now.Hour].time)),
                     Math.Round(temperatura, 2) + "℃",
@@ -135,18 +149,21 @@ namespace ihc
                     Math.Round(temperaturaN, 2) + "℃",
                     Jvreme.hourly.data[DateTime.Now.Hour].pressure + " mbar",
                     Jvreme.hourly.data[DateTime.Now.Hour].visibility + " km",
-                    (Convert.ToDouble(Jvreme.hourly.data[DateTime.Now.Hour].humidity)*100) + "%");
+                    (Convert.ToDouble(Jvreme.hourly.data[DateTime.Now.Hour].humidity) * 100) + "%");
                 //////////////////////////////////////////////////////////////////////////////////////////
                 lista.Add(rezultat);
                 Console.WriteLine(sada);
-                nacrtaj();
                 //comboBox1.Items.Remove(comboBox1.Text);
-                url = @"https://api.darksky.net/forecast/7f06dd7200dc1fc07af4db4e94039491/" + lokacija;
-                using (var client = new WebClient())
+                if (hajde)
                 {
-                    rezultat = client.DownloadString(url);
+                    url = @"https://api.darksky.net/forecast/7f06dd7200dc1fc07af4db4e94039491/" + lokacija;
+                    using (var client = new WebClient())
+                    {
+                        rezultat = client.DownloadString(url);
+                    }
+                    listaXL.Add(rezultat);
                 }
-                listaXL.Add(rezultat);
+                nacrtaj();
             }
             else
             {
@@ -154,12 +171,12 @@ namespace ihc
             }
         }
 
-        public string lokacija()
+        public string lokacija(int i)
         {
             string s;
             try
             {
-                switch (comboBox1.SelectedIndex)
+                switch (i)
                 {
                     case 0://beograd
                         s = "44.795916,20.448781";
@@ -198,8 +215,8 @@ namespace ihc
                     case "44.795916"://beograd
                         s = "u Beogradu";
                         break;
-                    case "44.013767"://kragujevac
-                        s = "u Kragujevcu";
+                    case "44.013767"://veljevo
+                        s = "u Valjevu";
                         break;
                     case "42.994691"://leskovac
                         s = "u Leskovcu";
@@ -223,11 +240,41 @@ namespace ihc
             return s;
         }
 
-        private void dodajBTN_Click(object sender, EventArgs e)
+        public string lokacijaUnazad2(string l)
         {
-            if (comboBox1.Text.Length > 2)
-                popuni(lokacija());
+            string s;
+            try
+            {
+                switch (l)
+                {
+                    case "44.795916"://beograd
+                        s = "Beograd";
+                        break;
+                    case "44.013767"://veljevo
+                        s = "Valjevo";
+                        break;
+                    case "42.994691"://leskovac
+                        s = "Leskovac";
+                        break;
+                    case "43.316763"://nis
+                        s = "Niš";
+                        break;
+                    case "45.265937"://novi sad
+                        s = "Novi Sad";
+                        break;
+                    case "46.100456"://subotica
+                        s = "Subotica";
+                        break;
+                    default://nikada nece upasti
+                        s = "";
+                        break;
+                }
+            }
+            catch { s = "45.265937,19.834985"; }
+
+            return s;
         }
+
         private void pritisakRB_CheckedChanged(object sender, EventArgs e)
         {
             nacrtaj();
@@ -254,38 +301,9 @@ namespace ihc
             var Jvreme = JsonConvert.DeserializeObject<dynamic>(rezultat);
             string grad = Jvreme.latitude;
             grad = lokacijaUnazad(grad);
-            chart11.AxisX.Add(new LiveCharts.Wpf.Axis { Title = "Sati", Labels = new[] { "00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00", "23:59" } });
             chart11.AxisY.Add(new LiveCharts.Wpf.Axis { Title = "Temperatura " + grad, LabelFormatter = value => value.ToString() + "℃" });
             chart11.LegendLocation = LiveCharts.LegendLocation.Right;
-            SeriesCollection series = new SeriesCollection();
-            ChartValues<double> temperatura = new ChartValues<double> {
-                            Math.Round(((Convert.ToDouble(Jvreme.hourly.data[0].temperature) - 32) / 1.8), 2),
-                            Math.Round(((Convert.ToDouble(Jvreme.hourly.data[1].temperature) - 32) / 1.8), 2),
-                            Math.Round(((Convert.ToDouble(Jvreme.hourly.data[2].temperature) - 32) / 1.8), 2),
-                            Math.Round(((Convert.ToDouble(Jvreme.hourly.data[3].temperature) - 32) / 1.8), 2),
-                            Math.Round(((Convert.ToDouble(Jvreme.hourly.data[4].temperature) - 32) / 1.8), 2),
-                            Math.Round(((Convert.ToDouble(Jvreme.hourly.data[5].temperature) - 32) / 1.8), 2),
-                            Math.Round(((Convert.ToDouble(Jvreme.hourly.data[6].temperature) - 32) / 1.8), 2),
-                            Math.Round(((Convert.ToDouble(Jvreme.hourly.data[7].temperature) - 32) / 1.8), 2),
-                            Math.Round(((Convert.ToDouble(Jvreme.hourly.data[8].temperature) - 32) / 1.8), 2),
-                            Math.Round(((Convert.ToDouble(Jvreme.hourly.data[9].temperature) - 32) / 1.8), 2),
-                            Math.Round(((Convert.ToDouble(Jvreme.hourly.data[10].temperature) - 32) / 1.8), 2),
-                            Math.Round(((Convert.ToDouble(Jvreme.hourly.data[11].temperature) - 32) / 1.8), 2),
-                            Math.Round(((Convert.ToDouble(Jvreme.hourly.data[12].temperature) - 32) / 1.8), 2),
-                            Math.Round(((Convert.ToDouble(Jvreme.hourly.data[13].temperature) - 32) / 1.8), 2),
-                            Math.Round(((Convert.ToDouble(Jvreme.hourly.data[14].temperature) - 32) / 1.8), 2),
-                            Math.Round(((Convert.ToDouble(Jvreme.hourly.data[15].temperature) - 32) / 1.8), 2),
-                            Math.Round(((Convert.ToDouble(Jvreme.hourly.data[16].temperature) - 32) / 1.8), 2),
-                            Math.Round(((Convert.ToDouble(Jvreme.hourly.data[17].temperature) - 32) / 1.8), 2),
-                            Math.Round(((Convert.ToDouble(Jvreme.hourly.data[18].temperature) - 32) / 1.8), 2),
-                            Math.Round(((Convert.ToDouble(Jvreme.hourly.data[19].temperature) - 32) / 1.8), 2),
-                            Math.Round(((Convert.ToDouble(Jvreme.hourly.data[20].temperature) - 32) / 1.8), 2),
-                            Math.Round(((Convert.ToDouble(Jvreme.hourly.data[21].temperature) - 32) / 1.8), 2),
-                            Math.Round(((Convert.ToDouble(Jvreme.hourly.data[22].temperature) - 32) / 1.8), 2),
-                            Math.Round(((Convert.ToDouble(Jvreme.hourly.data[23].temperature) - 32) / 1.8), 2),
-                        };
-            series.Add(new LineSeries() { Title = "Temperatura " + grad, Values = temperatura});
-            chart11.Series = series;
+
             nacrtaj();
         }
 
@@ -390,7 +408,7 @@ namespace ihc
 
                     var Jvreme = JsonConvert.DeserializeObject<dynamic>(rezultat);
                     string l = Jvreme.latitude;
-                    if (iscrtano.Contains(l))
+                    if (iscrtano.Contains(l) || odbaceno(l))
                         continue;
                     else if (parametar == "t")//temperatura
                     {
@@ -446,7 +464,7 @@ namespace ihc
                     //Console.WriteLine("/////////////////////////////////");
                     //Console.WriteLine(Jvreme.daily);
                     //Console.WriteLine("/////////////////////////////////");
-                    if (iscrtano.Contains(l))
+                    if (iscrtano.Contains(l) || odbaceno(l))
                         continue;
                     else if (parametar == "t")//temperatura
                     {
@@ -643,9 +661,82 @@ namespace ihc
             }*/
         }
 
+        public bool odbaceno(string l)
+        {
+            string s;
+            try
+            {
+                switch (l)
+                {
+                    case "44.795916"://beograd
+                        return !prikaziGrad.Contains(0);
+                    case "44.013767"://veljevo
+                        return !prikaziGrad.Contains(1);
+                    case "42.994691"://leskovac
+                        return !prikaziGrad.Contains(2);
+                    case "43.316763"://nis
+                        return !prikaziGrad.Contains(3);
+                    case "45.265937"://novi sad
+                        return !prikaziGrad.Contains(4);
+                    case "46.100456"://subotica
+                        return !prikaziGrad.Contains(5);
+                    default://nikada nece upasti
+                        s = "";
+                        break;
+                }
+            }
+            catch { return false; }
+            return false;
+        }
+
         private void comboBox2_SelectedIndexChanged(object sender, EventArgs e)
         {
             nacrtaj();
+        }
+
+        public int imamPodatke(string lokacija)
+        {
+            for (int i = 0; i < lista.Count; ++i)
+            {
+                var Jvreme = JsonConvert.DeserializeObject<dynamic>(lista.ElementAt(i));
+                string ss = Jvreme.latitude;
+                if (lokacija.Contains(ss))
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        private void GradSelectChange(object sender, EventArgs e)
+        {
+            List<Object> lista = new List<object> { checkBox1, checkBox2, checkBox3, checkBox4, checkBox5, checkBox6 };
+            for (int i = 0; i < lista.Count; ++i)
+            {
+                CheckBox c = (CheckBox)lista[i];
+                if (c.Checked)
+                {
+                    if (!prikaziGrad.Contains(i)) prikaziGrad.Add(i);
+                }
+                else
+                    if (prikaziGrad.Contains(i)) prikaziGrad.Remove(i);
+            }
+            do
+            {
+                foreach (DataGridViewRow row in dataGridView1.Rows)
+                {
+                    try
+                    {
+                        dataGridView1.Rows.Remove(row);
+                    }
+                    catch (Exception) { }
+                }
+            } while (dataGridView1.Rows.Count > 1);
+
+            foreach (int i in prikaziGrad)
+            {
+                popuni(lokacija(i));
+            }
         }
     }
 }
